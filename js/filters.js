@@ -1,5 +1,5 @@
 // ── Filter state + matching logic ──────────────────────────────────
-import { PERSONAL_TYPES } from "./data.js";
+import { PERSONAL_TYPES, EVENTS } from "./data.js";
 import { renderView } from "./ui.js";
 
 export let activeRewardFilter = "all";
