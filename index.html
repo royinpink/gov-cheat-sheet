@@ -1,0 +1,1819 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game of Vampires - Event Cheat Sheet</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="gov-cheat-sheet.css" />
+  </head>
+  <body>
+    <div class="drip-bar"></div>
+    <header>
+      <div class="header-title">
+        <h1>Game of <span>Vampires</span></h1>
+        <p class="subtitle">Event Cheat Sheet</p>
+      </div>
+      <div class="header-controls">
+        <select
+          id="tz-region-select"
+          class="tz-select"
+          onchange="onTZRegionChange()"
+          title="Select your timezone region"
+          aria-label="Select your timezone region"
+        >
+          <option value="">Auto</option>
+          <option value="America/New_York">Eastern</option>
+          <option value="America/Chicago">Central</option>
+          <option value="America/Denver">Mountain</option>
+          <option value="America/Los_Angeles">Pacific</option>
+          <option value="America/Anchorage">Alaska</option>
+          <option value="Pacific/Honolulu">Hawaii</option>
+        </select>
+        <button
+          id="tz-toggle-btn"
+          class="tz-toggle edt"
+          onclick="toggleTZ()"
+          type="button"
+        >
+          <span aria-hidden="true">&#x23f0;</span> Daylight
+        </button>
+      </div>
+    </header>
+    <nav class="tabs" role="tablist" aria-label="Main navigation">
+      <button
+        class="tab-btn active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="tab-cards"
+        tabindex="0"
+        id="tabbtn-cards"
+        onclick="switchTab('cards', this)"
+        onkeydown="tabKeydown(event)"
+      >
+        <span aria-hidden="true">&#x2694;</span> Events
+      </button>
+      <button
+        class="tab-btn"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tab-calc"
+        tabindex="-1"
+        id="tabbtn-calc"
+        onclick="switchTab('calc', this)"
+        onkeydown="tabKeydown(event)"
+      >
+        <span aria-hidden="true">&#x23F3;</span> Calculator
+      </button>
+    </nav>
+    <main>
+      <section
+        id="tab-cards"
+        class="tab-panel active"
+        role="tabpanel"
+        aria-label="Events"
+      >
+        <div class="view-toggle-bar">
+          <button
+            class="view-btn active"
+            onclick="setView('cards', this)"
+            type="button"
+            aria-pressed="true"
+          >
+            <span aria-hidden="true">&#x229E;</span> Cards
+          </button>
+          <button
+            class="view-btn"
+            onclick="setView('table', this)"
+            type="button"
+            aria-pressed="false"
+          >
+            <span aria-hidden="true">&#x2630;</span> Table
+          </button>
+        </div>
+        <div class="filter-bar" id="filter-bar"></div>
+        <div class="cards-grid" id="cards-grid"></div>
+        <div id="table-container" style="display: none"></div>
+        <div
+          id="result-count"
+          class="sr-only"
+          role="status"
+          aria-live="polite"
+        ></div>
+      </section>
+      <section
+        id="tab-calc"
+        class="tab-panel"
+        role="tabpanel"
+        aria-label="Calculator"
+      >
+        <div class="calc-card">
+          <h2><span aria-hidden="true">&#x23F3;</span> Stamina Calculator</h2>
+          <div class="calc-row">
+            <div class="field">
+              <label for="calc-event">Event</label>
+              <select id="calc-event" onchange="onEventSelect()">
+                <option value="">- select event -</option>
+              </select>
+            </div>
+          </div>
+          <div
+            class="calc-mode-toggle"
+            role="radiogroup"
+            aria-label="Calculation mode"
+          >
+            <button
+              id="mode-target-btn"
+              class="calc-mode-btn active"
+              type="button"
+              role="radio"
+              aria-checked="true"
+              onclick="setCalcMode('target')"
+            >
+              By target stamina
+            </button>
+            <button
+              id="mode-time-btn"
+              class="calc-mode-btn"
+              type="button"
+              role="radio"
+              aria-checked="false"
+              onclick="setCalcMode('time')"
+            >
+              By time away
+            </button>
+          </div>
+          <div class="calc-stam-row">
+            <div class="field">
+              <label for="calc-current">Current Stamina</label>
+              <input
+                type="number"
+                id="calc-current"
+                placeholder="0"
+                min="0"
+                oninput="recalc()"
+              />
+            </div>
+            <div class="field" id="field-target">
+              <label for="calc-target">Target Stamina</label>
+              <input
+                type="number"
+                id="calc-target"
+                placeholder="max"
+                min="0"
+                oninput="recalc()"
+              />
+            </div>
+            <div class="field" id="field-time" style="display: none">
+              <label for="calc-hours">Hours Away</label>
+              <input
+                type="number"
+                id="calc-hours"
+                placeholder="e.g. 4"
+                min="0"
+                step="0.25"
+                oninput="recalc()"
+              />
+            </div>
+          </div>
+          <span class="stam-hint" id="calc-hint"></span>
+          <div id="calc-result" style="display: none" class="calc-result">
+            <div
+              style="
+                font-family: &quot;Cinzel&quot;, serif;
+                font-size: 0.72rem;
+                letter-spacing: 0.08em;
+                color: var(--parchment-dim);
+                margin-bottom: 0.5rem;
+              "
+            >
+              RESULT
+            </div>
+            <div class="calc-result-grid" id="calc-grid"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script>
+      var IMGS = {
+        diamond: "imgs/diamond.png",
+        potion: "imgs/potion.png",
+        doll: "imgs/doll.png",
+        macabrian: "imgs/macabrian.png",
+        circus: "imgs/circus.png",
+        script: "imgs/script.png",
+        alchemy: "imgs/alchemy.png",
+      };
+
+      /* ── TIMEZONE STATE ─────────────────────────────────────────────────
+       *  tzOffset: 0 = Daylight Time, -1 = Standard Time
+       *  selectedTZ: IANA timezone string (null = auto-detect from browser)
+       * ────────────────────────────────────────────────────────────────── */
+      var tzOffset = 0;
+      var selectedTZ = null;
+
+      /** Maps the browser's IANA timezone to the nearest American region
+       *  and pre-selects the dropdown accordingly. */
+      function detectRegion() {
+        try {
+          var browserTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          var map = {
+            "America/New_York": "America/New_York",
+            "America/Detroit": "America/New_York",
+            "America/Indiana/Indianapolis": "America/New_York",
+            "America/Kentucky/Louisville": "America/New_York",
+            "America/Indiana/Marengo": "America/New_York",
+            "America/Indiana/Vevay": "America/New_York",
+            "America/Toronto": "America/New_York",
+            "America/Chicago": "America/Chicago",
+            "America/Winnipeg": "America/Chicago",
+            "America/Menominee": "America/Chicago",
+            "America/Indiana/Knox": "America/Chicago",
+            "America/Denver": "America/Denver",
+            "America/Boise": "America/Denver",
+            "America/Phoenix": "America/Denver",
+            "America/Los_Angeles": "America/Los_Angeles",
+            "America/Vancouver": "America/Los_Angeles",
+            "America/Tijuana": "America/Los_Angeles",
+            "America/Anchorage": "America/Anchorage",
+            "America/Juneau": "America/Anchorage",
+            "America/Sitka": "America/Anchorage",
+            "America/Yakutat": "America/Anchorage",
+            "Pacific/Honolulu": "Pacific/Honolulu",
+            "America/Adak": "Pacific/Honolulu",
+          };
+          var matched = map[browserTZ];
+          var sel = document.getElementById("tz-region-select");
+          if (matched && sel) {
+            sel.value = matched;
+            selectedTZ = matched;
+          }
+        } catch (e) {}
+      }
+
+      /** Handles user selecting a timezone region from the dropdown. */
+      function onTZRegionChange() {
+        var sel = document.getElementById("tz-region-select");
+        selectedTZ = sel && sel.value ? sel.value : null;
+        renderView();
+      }
+
+      /** Converts a game hour (stored as EDT, UTC-4) to a local Date.
+       *  Uses July (Daylight) or January (Standard) to let the browser
+       *  apply the correct DST rules for the selected region.
+       *  @param {number} gameHourEDT - Event hour in EDT (0–23)
+       *  @returns {Date} */
+      function gameHourToLocal(gameHourEDT) {
+        var utcHour = gameHourEDT + 4; // EDT is UTC-4
+        var year = new Date().getFullYear();
+        var month = tzOffset === 0 ? 6 : 0; // July (15) for daylight preview, January (15) for standard
+        return new Date(Date.UTC(year, month, 15, utcHour, 0));
+      }
+
+      /** Returns the short timezone code for the current region + DST mode (e.g. "EDT", "CST"). */
+      function getTZCode() {
+        var tz = selectedTZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
+        try {
+          var month = tzOffset === 0 ? 6 : 0;
+          var d = new Date(new Date().getFullYear(), month, 15);
+          var str = d.toLocaleString("en-US", {
+            timeZone: tz,
+            timeZoneName: "short",
+          });
+          var parts = str.split(" ");
+          return parts[parts.length - 1];
+        } catch (e) {
+          return "";
+        }
+      }
+
+      /** Formats a Date as a local time string using the selected region.
+       *  @param {Date} date
+       *  @returns {string} e.g. '7:00 AM' */
+      function fmtLocalTime(date) {
+        var opts = { hour: "numeric", minute: "2-digit", hour12: true };
+        if (selectedTZ) opts.timeZone = selectedTZ;
+        return date.toLocaleTimeString([], opts);
+      }
+
+      function tzLabel() {
+        return tzOffset === 0 ? "Daylight" : "Standard";
+      }
+
+      function updateTZButton() {
+        var btn = document.getElementById("tz-toggle-btn");
+        if (btn) {
+          btn.innerHTML =
+            '<span aria-hidden="true">\u23f0</span> ' + tzLabel() + " Time";
+          btn.className = "tz-toggle " + (tzOffset === 0 ? "edt" : "est");
+          btn.setAttribute(
+            "aria-label",
+            "Time mode: " + tzLabel() + " Time. Click to switch.",
+          );
+        }
+      }
+
+      /** Auto-detects whether the game server (Eastern) is currently in
+       *  Daylight or Standard time, and updates tzOffset accordingly. */
+      function detectTZ() {
+        try {
+          // Detect based on game server timezone (America/New_York)
+          var s = new Date().toLocaleString("en-US", {
+            timeZone: "America/New_York",
+            timeZoneName: "short",
+          });
+          tzOffset = s.indexOf("EDT") >= 0 ? 0 : -1;
+        } catch (e) {
+          tzOffset = 0;
+        }
+        updateTZButton();
+      }
+
+      /** Manually flips between Daylight / Standard time and re-renders cards. */
+      function toggleTZ() {
+        tzOffset = tzOffset === 0 ? -1 : 0;
+        updateTZButton();
+        renderView();
+      }
+
+      detectTZ();
+      detectRegion();
+
+      const PERSONAL_TYPES = new Set([
+        "Personal",
+        "Single Game",
+        "All Time",
+        "Admiration",
+        "Amulets"
+      ]);
+
+      var EVENTS = [
+        {
+          name: "Summer Nights",
+          startHourEDT: 7,
+          regen: { stam: 8, mins: 30 },
+          startStam: 64,
+          maxStam: 128,
+          shop: { type: "once", label: "Refreshes once" },
+          diamond: null,
+          rankings: [{ type: "Personal", reward: "Count" }],
+          items: [],
+        },
+
+        {
+          name: "Soulfire Cemetery",
+          startHourEDT: 10,
+          regen: { stam: 1, mins: 10 },
+          startStam: 24,
+          maxStam: 48,
+          shop: { type: "once", label: "Refreshes once" },
+          diamond: { cost: 100, stamPerBuy: 3, maxBuys: 10 },
+          rankings: [
+            { type: "Personal", reward: "Pumpkin Avatar" },
+            {
+              type: "Guild",
+              reward: "Ravenous Count",
+              mvpNote:
+                "Guild MVP: Ravenous Count \u00b7 Members: Baleful Baron",
+            },
+          ],
+          items: [],
+        },
+
+        {
+          name: "Monster Maker",
+          startHourEDT: 7,
+          regen: { stam: 25, mins: 30 },
+          startStam: 200,
+          maxStam: 400,
+          shop: { type: "none", label: "No shop" },
+          diamond: { cost: 60, stamPerBuy: 25, maxBuys: 10 },
+          rankings: [
+            { type: "Single Game", reward: "The Red Count" },
+            { type: "All Time", reward: null },
+          ],
+          items: [],
+        },
+
+        {
+          name: "Cupcake Chaos",
+          startHourEDT: 7,
+          regen: { stam: 4, mins: 30 },
+          startStam: 30,
+          maxStam: 60,
+          shop: { type: "none", label: "No shop" },
+          diamond: { cost: null, stamPerBuy: 4, maxBuys: 10 },
+          rankings: [
+            { type: "Single Game", reward: "The Red Count" },
+            { type: "Guild", reward: null },
+            {
+              type: "Auction",
+              auctionMain: "Circus Coins",
+              auctionUnder: "Scripts + Macabrian Parts",
+              reward: "Circus Coins / Scripts + Macabrian Parts",
+            },
+          ],
+          items: [],
+        },
+
+        {
+          name: "Ghost Hunting",
+          startHourEDT: 7,
+          regen: { stam: 1, mins: 6 },
+          startStam: 40,
+          maxStam: 80,
+          shop: { type: "daily", label: "Refreshes daily (4x total)" },
+          diamond: { cost: 100, stamPerBuy: 5, maxBuys: 10 },
+          rankings: [
+            { type: "Personal", reward: "Soulsworn Count" },
+            { type: "Team", reward: "Macabre Baron" },
+          ],
+          items: [],
+        },
+
+        {
+          name: "Shrouded Seas",
+          startHourEDT: 7,
+          regen: { stam: 4, mins: 30 },
+          startStam: 32,
+          maxStam: 64,
+          shop: { type: "once", label: "Refreshes once" },
+          diamond: { cost: 40, stamPerBuy: 2, maxBuys: 20 },
+          rankings: [
+            { type: "Personal", reward: "Soulsworn Count" },
+            { type: "Team", chipLabel: "Team Progression", reward: "Chatbox" },
+            { type: "Amulets", reward: null },
+          ],
+          items: [],
+        },
+
+        {
+          name: "Guardian Gargoyle",
+          startHourEDT: 7,
+          regen: { stam: 1, mins: 5 },
+          startStam: 48,
+          maxStam: 96,
+          shop: { type: "none", label: "No shop" },
+          diamond: { cost: null, stamPerBuy: 6, maxBuys: 10 },
+          rankings: [
+            { type: "Single Game", reward: "Count" },
+            { type: "All Time", reward: null },
+          ],
+          items: [],
+        },
+
+        {
+          name: "Abiogenesis Attack",
+          startHourEDT: 7,
+          regen: { stam: 10, mins: 30 },
+          startStam: 80,
+          maxStam: 160,
+          shop: { type: "none", label: "No shop" },
+          diamond: { cost: null, stamPerBuy: 12, maxBuys: 10 },
+          rankings: [
+            { type: "All Time", reward: "Bewitching Count" },
+            {
+              type: "Auction",
+              auctionMain: "Mutation Potions + Food",
+              auctionUnder: "Dolls + Food",
+              reward: "Mutation Potions + Food / Dolls + Food",
+            },
+          ],
+          items: [],
+        },
+
+        {
+          name: "Finders Keepers",
+          startHourEDT: 7,
+          regen: { stam: 12, mins: 30 },
+          startStam: 100,
+          maxStam: 200,
+          shop: { type: "once", label: "Refreshes once" },
+          diamond: null,
+          rankings: [
+            { type: "Personal", reward: "Celebrated Viscount" },
+            {
+              type: "Guild",
+              reward: "Bewitching Count",
+              mvpNote:
+                "Guild MVP: Bewitching Count \u00b7 Members: Charming Baron",
+            },
+            {
+              type: "Auction",
+              auctionMain: "Circus Coins",
+              auctionUnder: "Scripts + Macabrian Parts",
+              reward: "Circus Coins / Scripts + Macabrian Parts",
+            },
+          ],
+          items: [],
+        },
+
+        {
+          name: "Street of the Dead",
+          startHourEDT: 7,
+          regen: { stam: 4, mins: 30 },
+          startStam: 30,
+          maxStam: 60,
+          shop: { type: "none", label: "No shop" },
+          diamond: { cost: null, stamPerBuy: 4, maxBuys: 10 },
+          rankings: [
+            { type: "Single Game", reward: "Iron-willed Count" },
+            { type: "All Time", reward: null },
+          ],
+          items: [],
+        },
+
+        {
+          name: "Nightwings",
+          startHourEDT: 10,
+          regen: { stam: 1, mins: 10 },
+          startStam: 20,
+          maxStam: 40,
+          shop: { type: "daily", label: "Refreshes daily (5x total)" },
+          diamond: { cost: 30, stamPerBuy: 3, maxBuys: 10 },
+          rankings: [
+            { type: "Personal", reward: "Count" },
+            {
+              type: "Guild",
+              reward: "Fearless Count",
+              mvpNote:
+                "Guild MVP: Fearless Count \u00b7 Members: Resolute Baron",
+            },
+          ],
+          items: ["Alchemy Formula"],
+          shopItems: ["Alchemy Formula"],
+        },
+
+        {
+          name: "Nocturne Gallery",
+          startHourEDT: 7,
+          regen: null,
+          startStam: null,
+          maxStam: null,
+          shop: { type: "none", label: "No shop" },
+          diamond: { cost: 40, stamPerBuy: 1, maxBuys: 20 },
+          rankings: [
+            { type: "Personal", reward: "Bewitching Count" },
+            { type: "Admiration", reward: "Imp (familiar)" },
+          ],
+          items: [],
+          notes: "No stamina regen system",
+        },
+
+        {
+          name: "Rite of War",
+          startHourEDT: 10,
+          weekly: true,
+          regen: { stam: 1, mins: 30 },
+          startStam: 12,
+          maxStam: 16,
+          shop: { type: "weekly", label: "Refreshes weekly · 3× per season" },
+          diamond: null,
+          rankings: [
+            {
+              type: "Personal",
+              reward: "Ominous Viscount",
+              rankNote: "Bronze League",
+            },
+            {
+              type: "Personal",
+              reward: "Sinister Count",
+              rankNote: "Gold League",
+            },
+            {
+              type: "Personal",
+              reward: "Eldritch Margrave",
+              rankNote: "Invincible League",
+            },
+          ],
+          items: [],
+          notes:
+            "Guild competes in 1 of 3 leagues. Titles are only awarded for the Supreme ranking.",
+        },
+
+        {
+          name: "Cake Caper / Winter Krampus / Anniversary Familiars",
+
+          regen: null,
+          startStam: null,
+          maxStam: null,
+          shop: null,
+          diamond: null,
+          rankings: [
+            { type: "Personal", reward: "Malevolent Margrave" },
+            {
+              type: "Guild",
+              reward: "Ravenous Count",
+              mvpNote:
+                "Guild MVP: Ravenous Count \u00b7 Members: Baleful Baron",
+            },
+          ],
+          items: [],
+          notes: "Seasonal reskin",
+        },
+
+        {
+          name: "Festival Fun / Anniversary Dom",
+          regen: null,
+          startStam: null,
+          maxStam: null,
+          shop: null,
+          diamond: null,
+          rankings: [
+            { type: "Personal", reward: "Indomitable Margrave" },
+            {
+              type: "Guild",
+              reward: "Iron-willed Count",
+              mvpNote:
+                "Guild MVP: Iron-willed Count \u00b7 Members: Merciless Baron",
+            },
+          ],
+          items: [],
+          notes: "Seasonal reskin",
+        },
+      ];
+
+      var activeRewardFilter = "all";
+      var activeScopeFilter = "all";
+
+      function gimg(key, size) {
+        size = size || 20;
+        return (
+          '<img src="' +
+          IMGS[key] +
+          '" alt="' +
+          key +
+          '" style="width:' +
+          size +
+          "px;height:" +
+          size +
+          'px;object-fit:contain;vertical-align:middle">'
+        );
+      }
+
+      var REWARD_FILTERS = [
+        { key: "all", label: "All" },
+        { key: "margrave", label: "Margrave" },
+        { key: "count", label: "Count" },
+        { key: "viscount", label: "Viscount" },
+        { key: "baron", label: "Baron" },
+        { key: "auction", label: "Auction", icon: "circus" },
+        { key: "familiar", label: "Familiar / Other" },
+      ];
+
+      var SCOPE_FILTERS = [
+        { key: "all", label: "All" },
+        { key: "personal", label: "Personal" },
+        { key: "guild", label: "Guild" },
+        { key: "team", label: "Team" },
+      ];
+
+      function rewardToFilter(reward) {
+        if (!reward) return "none";
+        var r = reward.toLowerCase();
+        if (r.indexOf("margrave") >= 0) return "margrave";
+        if (r.indexOf("viscount") >= 0) return "viscount";
+        if (r.indexOf("count") >= 0) return "count";
+        if (r.indexOf("baron") >= 0) return "baron";
+        if (
+          r.indexOf("circus") >= 0 ||
+          r.indexOf("script") >= 0 ||
+          r.indexOf("potion") >= 0 ||
+          r.indexOf("doll") >= 0 ||
+          r.indexOf("mutation") >= 0
+        )
+          return "auction";
+        if (r.indexOf("none") >= 0) return "none";
+        return "familiar";
+      }
+
+      function rankingScope(type) {
+        if (type === "Guild") return "guild";
+        if (type === "Team") return "team";
+        if (type === "Auction") return "auction";
+        if (PERSONAL_TYPES.has(type)) return "personal";
+      }
+
+      function rankingMatchesFilters(r) {
+        if (!r.reward && activeRewardFilter !== "all") return false;
+        var rMatch =
+          activeRewardFilter === "all" ||
+          rewardToFilter(r.reward) === activeRewardFilter;
+        var sMatch =
+          activeScopeFilter === "all" ||
+          rankingScope(r.type) === activeScopeFilter;
+        return rMatch && sMatch;
+      }
+
+      function rewardHTML(reward) {
+        if (!reward)
+          return '<span style="color:var(--parchment-dim);font-style:italic">no title</span>';
+        var r = reward.toLowerCase(),
+          icons = "";
+        if (r.indexOf("mutation potion") >= 0) icons += gimg("potion");
+        if (r.indexOf("doll") >= 0) icons += gimg("doll");
+        if (r.indexOf("circus coin") >= 0) icons += gimg("circus");
+        if (r.indexOf("script") >= 0) icons += gimg("script");
+        if (r.indexOf("macabrian") >= 0) icons += gimg("macabrian");
+        if (r.indexOf("alchemy") >= 0) icons += gimg("alchemy");
+        return icons + "<span>" + reward + "</span>";
+      }
+
+      function rankClass(type) {
+        var map = {
+          Personal: "rank-personal",
+          "All Time": "rank-alltime",
+          "Single Game": "rank-singlegame",
+          Guild: "rank-guild",
+          Team: "rank-team",
+          Auction: "rank-auction",
+          Admiration: "rank-admiration",
+          Amulets: "rank-admiration",
+          "Team Progression": "rank-team",
+        };
+        return map[type] || "rank-personal";
+      }
+
+      /** Calculates the local time at which an event's stamina reaches max
+       *  if left untouched from the event start.
+       *  @param {object} ev - Event data object
+       *  @returns {string|null} formatted time string, or null if data missing */
+      function maxStamTime(ev) {
+        if (
+          !ev.regen ||
+          ev.startStam === null ||
+          ev.maxStam === null ||
+          ev.startHourEDT === null ||
+          ev.startHourEDT === undefined
+        )
+          return null;
+        var minsPerStam = ev.regen.mins / ev.regen.stam;
+        var minsToMax = (ev.maxStam - ev.startStam) * minsPerStam;
+        var startDate = gameHourToLocal(ev.startHourEDT);
+        var maxDate = new Date(startDate.getTime() + minsToMax * 60000);
+        return fmtLocalTime(maxDate);
+      }
+
+      /* ── CARD / TABLE RENDERING ─────────────────────────────────────── */
+
+      /** Builds the HTML string for a single event card.
+       *  @param {object} ev - Event data object
+       *  @returns {string} HTML for an <article> element */
+      function buildCard(ev) {
+        // An event is treated as a stamina placeholder if it has no regen data
+        var ph = !ev.regen && ev.startStam == null;
+
+        var stamHTML = "";
+        if (!ph && (ev.regen || ev.startStam !== null)) {
+          var maxT = maxStamTime(ev);
+          var maxTimeHTML = maxT
+            ? '<div class="stat-pill" style="flex:2"><span class="stat-pill-label">Maxes at (untouched)</span><span class="stat-pill-value" style="color:var(--gold-bright)">' +
+              maxT +
+              "</span></div>"
+            : "";
+          stamHTML =
+            '<div class="stat-row">' +
+            '<div class="stat-pill"><span class="stat-pill-label">Regen</span><span class="stat-pill-value">' +
+            (ev.regen ? ev.regen.stam + "/" + ev.regen.mins + "min" : "N/A") +
+            "</span></div>" +
+            '<div class="stat-pill"><span class="stat-pill-label">Start</span><span class="stat-pill-value">' +
+            (ev.startStam !== null && ev.startStam !== undefined
+              ? ev.startStam
+              : "0") +
+            "</span></div>" +
+            '<div class="stat-pill"><span class="stat-pill-label">Max</span><span class="stat-pill-value">' +
+            (ev.maxStam || "—") +
+            "</span></div>" +
+            maxTimeHTML +
+            "</div>";
+        }
+
+        var startTimeHTML = "";
+        if (!ph && ev.startHourEDT !== null && ev.startHourEDT !== undefined) {
+          var startDate = gameHourToLocal(ev.startHourEDT);
+          var startStr = fmtLocalTime(startDate);
+          startTimeHTML =
+            '<div><span class="section-label">Starts:</span> ' +
+            '<span style="font-size:0.75rem;color:var(--parchment)">' +
+            startStr +
+            " " +
+            getTZCode() +
+            "</span></div>";
+        }
+
+
+        var shopHTML = "";
+        if (!ph && ev.shop) {
+          var cls =
+            ev.shop.type === "daily"
+              ? "shop-daily"
+              : ev.shop.type === "once"
+                ? "shop-once"
+                : ev.shop.type === "weekly"
+                  ? "shop-weekly"
+                  : "shop-none";
+          var shopItemsHTML = "";
+          if (ev.shopItems && ev.shopItems.length) {
+            var sitags = ev.shopItems
+              .map(function (item) {
+                var keyMap = {
+                  "alchemy formula": "alchemy",
+                  "circus coins": "circus",
+                  "macabrian parts": "macabrian",
+                  "mutation potions": "potion",
+                  "mutation potion": "potion",
+                };
+                var key =
+                  keyMap[item.toLowerCase()] ||
+                  item.toLowerCase().replace(/ /g, "");
+                var im = IMGS[key] ? gimg(key, 22) : "";
+                return '<span class="item-tag">' + im + item + "</span>";
+              })
+              .join("");
+            shopItemsHTML =
+              '<div class="shop-rec"><span class="shop-rec-label">Recommended Item</span><div class="items-wrap">' +
+              sitags +
+              "</div></div>";
+          }
+          shopHTML =
+            '<div><div class="section-label">Redeem Shop</div><span class="shop-badge ' +
+            cls +
+            '">' +
+            ev.shop.label +
+            "</span>" +
+            shopItemsHTML +
+            "</div>";
+        }
+
+        var diamHTML = "";
+        if (!ph && ev.diamond) {
+          var d = ev.diamond,
+            cs = d.cost ? d.cost : "?",
+            ts = d.stamPerBuy * d.maxBuys,
+            tc = d.cost ? d.cost * d.maxBuys : null;
+          diamHTML =
+            '<div><div class="section-label">Diamond Stamina</div><div class="diamond-row"> <span class="diamond-highlight">' +
+            cs +
+            gimg("diamond", 18) +
+            "</span>" +
+            ' \u2192 <span class="diamond-highlight">' +
+            d.stamPerBuy +
+            " stam</span>" +
+            ' <span style="color:var(--ash)">\u00b7</span>' +
+            ' max <span class="diamond-highlight">' +
+            d.maxBuys +
+            "x</span>" +
+            ' = <span class="diamond-highlight">' +
+            ts +
+            " stam</span>" +
+            (tc
+              ? ' <span style="color:var(--parchment-dim);font-size:0.78rem">(' +
+                tc +
+                gimg("diamond", 18)+ ")</span>"
+              : "") +
+            "</div></div>";
+        }
+
+        var rankHTML = "";
+        if (ev.rankings && ev.rankings.length) {
+          var rows = ev.rankings
+            .map(function (r) {
+              var chipLabel = r.chipLabel || r.type;
+
+              var rankNote = r.rankNote
+                ? ' <span style="font-size:0.7rem;color:var(--gold);font-style:italic">' +
+                  r.rankNote +
+                  "</span>"
+                : "";
+              var rewardContent = r.auctionMain
+                ? '<div><span style="color:var(--gold-bright);font-size:0.8rem">Main:</span> ' +
+                  rewardHTML(r.auctionMain) +
+                  "</div>" +
+                  '<div><span style="color:var(--gold-bright);font-size:0.8rem">Underground:</span> ' +
+                  rewardHTML(r.auctionUnder) +
+                  "</div>"
+                : rewardHTML(r.reward);
+              var note = r.mvpNote
+                ? '<span class="rank-note">\u21b3 ' + r.mvpNote + "</span>"
+                : "";
+              return (
+                '<li class="ranking-row"><span class="rank-type ' +
+                rankClass(r.type) +
+                '">' +
+                chipLabel +
+                "</span>" +
+                rankNote +
+                ' <span class="rank-arrow">\u2192</span>' +
+                ' <span class="rank-reward" style="flex-direction:column;align-items:flex-start">' +
+                rewardContent +
+                "</span>" +
+                note +
+                "</li>"
+              );
+            })
+            .join("");
+          rankHTML =
+            '<div><div class="section-label">Rankings &amp; Rewards</div><ul class="rankings">' +
+            rows +
+            "</ul></div>";
+        }
+
+        var notesHTML = ev.notes
+          ? '<div class="card-note">' + ev.notes + "</div>"
+          : "";
+        var calcLink =
+          ev.regen && !ph
+            ? '<button class="calc-btn" onclick="openCalc(this)" type="button"><span aria-hidden="true">\u23f3</span> Calculate stamina time</button>'
+            : "";
+        var phBody = ph
+          ? '<div class="placeholder-msg"><span aria-hidden="true">\ud83d\udd6f</span> Stamina data not yet recorded</div>'
+          : "";
+        return (
+          '<article class="event-card' +
+          (ph ? " placeholder" : "") +
+          (ev.weekly ? " weekly-card" : "") +
+          '" data-name="' +
+          ev.name.replace(/"/g, "&quot;") +
+          '">' +
+          '<header class="card-header"><h3 class="card-title">' +
+          ev.name +
+          "</h3></header>" +
+          '<div class="card-body">' +
+          phBody +
+          startTimeHTML +
+          stamHTML +
+          shopHTML +
+          diamHTML +
+          rankHTML +
+          notesHTML +
+          "</div>" +
+          calcLink +
+          "</article>"
+        );
+      }
+
+      var activeTitleFilter = null;
+
+      /** Returns all event names sorted alphabetically, for the search dropdown. */
+      function getAllEventNames() {
+        return EVENTS.map(function (ev) {
+          return ev.name;
+        }).sort(function (a, b) {
+          return a.localeCompare(b);
+        });
+      }
+
+      function eventMatchesName(ev, name) {
+        return ev.name === name;
+      }
+
+      function buildTitleSearchRow(bar) {
+        var row = document.createElement("div");
+        row.className = "title-search-row";
+        var lbl = document.createElement("label");
+        lbl.className = "filter-label";
+        lbl.textContent = "Find event:";
+        lbl.setAttribute("for", "title-input");
+        row.appendChild(lbl);
+
+        var wrap = document.createElement("div");
+        wrap.className = "title-search-wrap";
+
+        var input = document.createElement("input");
+        input.type = "text";
+        input.id = "title-input";
+        input.className = "title-search-input";
+        input.placeholder = "Type or select an event...";
+        input.autocomplete = "off";
+
+        var clearBtn = document.createElement("button");
+        clearBtn.className = "title-clear";
+        clearBtn.id = "title-clear-btn";
+        clearBtn.innerHTML = "&#x2715;";
+        clearBtn.setAttribute("aria-label", "Clear event filter");
+        clearBtn.setAttribute("type", "button");
+        clearBtn.style.display = "none";
+        clearBtn.onclick = function () {
+          clearTitleFilter();
+        };
+
+        var dropdown = document.createElement("div");
+        dropdown.id = "title-dropdown";
+        dropdown.className = "title-dropdown";
+        dropdown.style.display = "none";
+
+        input.addEventListener("input", function () {
+          onTitleInput();
+        });
+        input.addEventListener("focus", function () {
+          onTitleInput(true);
+        });
+        input.addEventListener("keydown", function (e) {
+          var opts = dropdown.querySelectorAll(".title-option");
+          var hi = dropdown.querySelector(".highlighted");
+          var idx = hi ? Array.from(opts).indexOf(hi) : -1;
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            var n = opts[idx + 1] || opts[0];
+            if (n) {
+              if (hi) hi.classList.remove("highlighted");
+              n.classList.add("highlighted");
+            }
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            var p = opts[idx - 1] || opts[opts.length - 1];
+            if (p) {
+              if (hi) hi.classList.remove("highlighted");
+              p.classList.add("highlighted");
+            }
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            var h = dropdown.querySelector(".highlighted");
+            if (h) setTitleFilter(h.dataset.title, input);
+          } else if (e.key === "Escape") {
+            dropdown.style.display = "none";
+          }
+        });
+
+        document.addEventListener("click", function (e) {
+          if (!wrap.contains(e.target)) dropdown.style.display = "none";
+        });
+
+        wrap.appendChild(input);
+        wrap.appendChild(clearBtn);
+        wrap.appendChild(dropdown);
+
+        row.appendChild(wrap);
+        bar.appendChild(row);
+      }
+
+      function onTitleInput(showAll) {
+        var input = document.getElementById("title-input");
+        var dropdown = document.getElementById("title-dropdown");
+        var q = (input.value || "").toLowerCase().trim();
+        var all = getAllEventNames();
+        var filtered =
+          showAll && !q
+            ? all
+            : all.filter(function (t) {
+                return t.toLowerCase().indexOf(q) >= 0;
+              });
+        if (!filtered.length) {
+          dropdown.style.display = "none";
+          return;
+        }
+        dropdown.innerHTML = filtered
+          .map(function (t) {
+            return (
+              '<div class="title-option" data-title="' +
+              t.replace(/"/g, "&quot;") +
+              '">' +
+              t +
+              "</div>"
+            );
+          })
+          .join("");
+        dropdown.querySelectorAll(".title-option").forEach(function (opt) {
+          opt.addEventListener("mousedown", function (e) {
+            e.preventDefault();
+            setTitleFilter(opt.dataset.title, input);
+          });
+        });
+        dropdown.style.display = "block";
+      }
+
+      /** Activates the event-name search filter and re-renders. */
+      function setTitleFilter(title, input) {
+        activeTitleFilter = title;
+        if (input) input.value = title;
+        var dropdown = document.getElementById("title-dropdown");
+        if (dropdown) dropdown.style.display = "none";
+        var clearBtn = document.getElementById("title-clear-btn");
+        if (clearBtn) clearBtn.style.display = "block";
+
+        renderView();
+      }
+
+      /** Clears the event-name search filter and re-renders. */
+      function clearTitleFilter() {
+        activeTitleFilter = null;
+        var input = document.getElementById("title-input");
+        if (input) input.value = "";
+        var clearBtn = document.getElementById("title-clear-btn");
+        if (clearBtn) clearBtn.style.display = "none";
+
+        var dropdown = document.getElementById("title-dropdown");
+        if (dropdown) dropdown.style.display = "none";
+        renderView();
+      }
+
+      /* ── VIEW MODE ───────────────────────────────────────────────────── */
+
+      /** Current display mode: 'cards' or 'table'. */
+      var viewMode = "cards";
+
+      /** Switches between card and table views and re-renders. */
+      function setView(mode, btn) {
+        viewMode = mode;
+        document.querySelectorAll(".view-btn").forEach(function (b) {
+          b.classList.remove("active");
+        });
+        if (btn) btn.classList.add("active");
+        var grid = document.getElementById("cards-grid");
+        var tbl = document.getElementById("table-container");
+        if (mode === "cards") {
+          grid.style.display = "";
+          tbl.style.display = "none";
+          renderCards();
+        } else {
+          grid.style.display = "none";
+          tbl.style.display = "";
+          renderTable();
+        }
+      }
+
+      /** Renders whichever view is currently active. */
+      function renderView() {
+        if (viewMode === "cards") renderCards();
+        else renderTable();
+      }
+
+      /* ── TABLE RENDERING HELPERS ─────────────────────────────────────── */
+
+      /** Builds the Personal / Single Game / All Time rankings cell for the table. */
+      function buildPersonalCell(ev) {
+        
+        var parts = [];
+        ev.rankings.forEach(function (r) {
+          if (PERSONAL_TYPES.has(r.type)) {
+            var cls = rankClass(r.type);
+            var lbl = r.type;
+
+            var rnote = r.rankNote
+              ? '<span class="t-rank-note">' + r.rankNote + "</span>"
+              : "";
+            var reward = r.reward
+              ? '<span style="color:var(--silver)">' + r.reward + "</span>"
+              : '<span class="t-dim">no title</span>';
+            // Multi-line rewards (Rite of War has newline-separated titles)
+            if (r.reward && r.reward.indexOf("\n") >= 0) {
+              r.reward.split("\n").forEach(function (line) {
+                var trimmed = line.trim();
+                if (trimmed)
+                  parts.push(
+                    '<div class="t-rank-row"><span class="rank-type ' +
+                      cls +
+                      '">' +
+                      lbl +
+                      '</span> <span style="color:var(--silver)">' +
+                      trimmed +
+                      "</span></div>",
+                  );
+              });
+            } else {
+              parts.push(
+                '<div class="t-rank-row"><span class="rank-type ' +
+                  cls +
+                  '">' +
+                  lbl +
+                  "</span>" +
+                  " " +
+                  reward +
+                  "</div>" +
+                  rnote,
+              );
+            }
+          }
+        });
+        return parts.length
+          ? '<div class="t-rank">' + parts.join("") + "</div>"
+          : '<span class="t-dim">\u2014</span>';
+      }
+
+      /** Builds the Guild rankings cell (MVP + Members). */
+      function buildGuildCell(ev) {
+        var parts = [];
+        ev.rankings.forEach(function (r) {
+          if (r.type === "Guild") {
+            var reward = r.reward
+              ? '<span style="color:var(--silver)">' + r.reward + "</span>"
+              : '<span class="t-dim">no title</span>';
+            parts.push(
+              '<div class="t-rank-row"><span class="rank-type rank-guild">Guild</span> ' +
+                reward +
+                "</div>",
+            );
+            if (r.mvpNote)
+              parts.push(
+                '<div class="t-rank-note">\u21b3 ' + r.mvpNote + "</div>",
+              );
+          }
+        });
+        return parts.length
+          ? '<div class="t-rank">' + parts.join("") + "</div>"
+          : '<span class="t-dim">\u2014</span>';
+      }
+
+      /** Builds the Team ranking cell. */
+      function buildTeamCell(ev) {
+        var parts = [];
+        ev.rankings.forEach(function (r) {
+          if (r.type === "Team") {
+            var lbl = r.chipLabel || "Team";
+            var reward = r.reward
+              ? '<span style="color:var(--silver)">' + r.reward + "</span>"
+              : '<span class="t-dim">no title</span>';
+            parts.push(
+              '<div class="t-rank-row"><span class="rank-type rank-team">' +
+                lbl +
+                "</span> " +
+                reward +
+                "</div>",
+            );
+          }
+        });
+        return parts.length
+          ? '<div class="t-rank">' + parts.join("") + "</div>"
+          : '<span class="t-dim">\u2014</span>';
+      }
+
+      /** Builds the Auction cell (Main + Underground on separate lines). */
+      function buildAuctionCell(ev) {
+        var parts = [];
+        ev.rankings.forEach(function (r) {
+          if (r.auctionMain) {
+            parts.push(
+              '<div><span style="color:var(--gold-bright);font-size:0.75rem">Main:</span> ' +
+                rewardHTML(r.auctionMain) +
+                "</div>",
+            );
+            parts.push(
+              '<div><span style="color:var(--gold-bright);font-size:0.75rem">Underground:</span> ' +
+                rewardHTML(r.auctionUnder) +
+                "</div>",
+            );
+          }
+        });
+        return parts.length
+          ? parts.join("")
+          : '<span class="t-dim">\u2014</span>';
+      }
+
+      /** Builds the Redeem Shop cell for the table. */
+      function buildShopCell(ev) {
+        if (!ev.shop) return '<span class="t-dim">—</span>';
+        var cls =
+          ev.shop.type === "daily"
+            ? "shop-daily"
+            : ev.shop.type === "once"
+              ? "shop-once"
+              : ev.shop.type === "weekly"
+                ? "shop-weekly"
+                : "shop-none";
+        var out =
+          '<span class="shop-badge ' + cls + '">' + ev.shop.label + "</span>";
+        if (ev.shopItems && ev.shopItems.length) {
+          var keyMap = {
+            "alchemy formula": "alchemy",
+            "circus coins": "circus",
+            "macabrian parts": "macabrian",
+            "mutation potions": "potion",
+            doll: "doll",
+          };
+          var items = ev.shopItems
+            .map(function (item) {
+              var key =
+                keyMap[item.toLowerCase()] ||
+                item.toLowerCase().replace(/ /g, "");
+              return (IMGS[key] ? gimg(key, 13) : "") + item;
+            })
+            .join(", ");
+          out +=
+            '<br><span class="t-dim" style="font-size:0.7rem">Rec: ' +
+            items +
+            "</span>";
+        }
+        return out;
+      }
+
+      /** Builds a single table row <tr> string for one event. */
+      function buildTableRow(ev) {
+        var ph = !ev.regen && ev.startStam == null;
+
+        // Start time
+        var startStr =
+          ev.startHourEDT !== null && ev.startHourEDT !== undefined
+            ? fmtLocalTime(gameHourToLocal(ev.startHourEDT)) + " " + getTZCode()
+            : "?";
+
+        // Regen
+        var regenStr = ev.regen
+          ? '<span class="t-mono t-gold">' +
+            ev.regen.stam +
+            "/" +
+            ev.regen.mins +
+            "min</span>"
+          : '<span class="t-dim">N/A</span>';
+
+        // Stamina range
+        var ss =
+          ev.startStam !== null && ev.startStam !== undefined
+            ? ev.startStam
+            : "\u2014";
+        var ms = ev.maxStam || "\u2014";
+        var stamStr =
+          '<span class="t-mono">' + ss + " \u2192 " + ms + "</span>";
+
+        // Maxes at
+        var maxT = maxStamTime(ev);
+        var maxStr = maxT
+          ? '<span class="t-mono t-gold">' + maxT + "</span>"
+          : '<span class="t-dim">\u2014</span>';
+
+        // Diamond per buy
+        var diam1 = '<span class="t-dim">\u2014</span>';
+        var diam2 = '<span class="t-dim">\u2014</span>';
+        if (ev.diamond && ev.diamond.stamPerBuy) {
+          var d = ev.diamond;
+          var cost = d.cost ? d.cost : "?";
+          diam1 =
+            '<span class="t-mono t-red">' +
+            cost +
+            "</span>" +
+            gimg("diamond", 13) +
+            ' \u2192 <span class="t-mono t-red">' +
+            d.stamPerBuy +
+            ' stam</span>, <span class="t-mono">' +
+            d.maxBuys +
+            "\u00d7</span>";
+          var totalCost = d.cost ? d.cost * d.maxBuys : "?";
+          var totalStam = d.stamPerBuy * d.maxBuys;
+          diam2 =
+            '<span class="t-mono t-red">' +
+            totalCost +
+            "</span>" +
+            gimg("diamond", 13) +
+            ' \u2192 <span class="t-mono t-red">' +
+            totalStam +
+            " stam</span>";
+        }
+
+        var rowCls = "";
+        if (ph) rowCls = "table-placeholder";
+        else if (ev.weekly) rowCls = "table-weekly";
+
+        return (
+          '<tr class="' +
+          rowCls +
+          '">' +
+          '<td><span class="t-evname">' +
+          ev.name.replace(/\//g, "/<wbr>") +
+          "</span></td>" +
+          '<td class="t-mono">' +
+          startStr +
+          "</td>" +
+          "<td>" +
+          regenStr +
+          "</td>" +
+          "<td>" +
+          stamStr +
+          "</td>" +
+          "<td>" +
+          maxStr +
+          "</td>" +
+          "<td>" +
+          diam1 +
+          "</td>" +
+          "<td>" +
+          diam2 +
+          "</td>" +
+          "<td>" +
+          buildShopCell(ev) +
+          "</td>" +
+          "<td>" +
+          buildPersonalCell(ev) +
+          "</td>" +
+          "<td>" +
+          buildGuildCell(ev) +
+          "</td>" +
+          "<td>" +
+          buildTeamCell(ev) +
+          "</td>" +
+          "<td>" +
+          buildAuctionCell(ev) +
+          "</td>" +
+          '<td class="t-dim">' +
+          (ev.notes || "") +
+          "</td>" +
+          "</tr>"
+        );
+      }
+
+      /** Filters EVENTS and renders them as a compact sortable table into #table-container. */
+      function renderTable() {
+        var container = document.getElementById("table-container");
+        var filtered = EVENTS.filter(cardMatchesFilters);
+        if (!filtered.length) {
+          container.innerHTML =
+            '<div style="padding:2rem;text-align:center;color:var(--parchment-dim);font-style:italic">No events match the current filters.</div>';
+          return;
+        }
+        var heads = [
+          "Event",
+          "Starts",
+          "Regen",
+          "Start \u2192 Max",
+          "Maxes At",
+          '\ud83d\udc8e /Buy<br><small style="font-weight:400;font-style:italic">Cost\u2192Stam, Buys</small>',
+          '\ud83d\udc8e Total<br><small style="font-weight:400;font-style:italic">Total\u2192Stam</small>',
+          "Redeem Shop",
+          "Personal Reward",
+          'Guild Reward<br><small style="font-weight:400;font-style:italic">MVP / Members</small>',
+          "Team Reward",
+          "Auction",
+          "Notes",
+        ];
+        var headerRow = heads
+          .map(function (h) {
+            return '<th scope="col">' + h + "</th>";
+          })
+          .join("");
+        var rows = filtered.map(buildTableRow).join("");
+        container.innerHTML =
+          '<div class="table-wrap"><table class="compact-table"><caption class="sr-only">Game of Vampires events — stamina, economy, and ranking rewards</caption><thead><tr>' +
+          headerRow +
+          "</tr></thead><tbody>" +
+          rows +
+          "</tbody></table></div>";
+        announceCount(filtered.length);
+      }
+
+      /** Dynamically builds the filter bar (reward tier, ranking type,
+       *  timezone toggle, event search) and appends it to #filter-bar. */
+      function buildFilters() {
+        var bar = document.getElementById("filter-bar");
+        bar.innerHTML = "";
+
+        // Row 1: reward tier
+        var row1 = document.createElement("div");
+        row1.className = "filter-row";
+        var lbl1 = document.createElement("span");
+        lbl1.className = "filter-label";
+        lbl1.textContent = "Reward tier:";
+        row1.appendChild(lbl1);
+        REWARD_FILTERS.forEach(function (f) {
+          var ico = f.icon
+            ? '<img src="' +
+              IMGS[f.icon] +
+              '" alt="" style="width:14px;height:14px;object-fit:contain">'
+            : "";
+          var btn = document.createElement("button");
+          btn.className = "filter-chip" + (f.key === "all" ? " active" : "");
+          btn.innerHTML = ico + f.label;
+          btn.dataset.filterKey = f.key;
+          btn.onclick = (function (fk, b) {
+            return function () {
+              setRewardFilter(fk, b);
+            };
+          })(f.key, btn);
+          row1.appendChild(btn);
+        });
+        bar.appendChild(row1);
+
+        // Row 2: scope
+        var row2 = document.createElement("div");
+        row2.className = "filter-row";
+        var lbl2 = document.createElement("span");
+        lbl2.className = "filter-label";
+        lbl2.textContent = "Ranking type:";
+        row2.appendChild(lbl2);
+        SCOPE_FILTERS.forEach(function (f) {
+          var btn = document.createElement("button");
+          btn.className =
+            "filter-chip scope-chip" + (f.key === "all" ? " active" : "");
+          btn.innerHTML = f.label;
+          btn.dataset.scopeKey = f.key;
+          btn.onclick = (function (fk, b) {
+            return function () {
+              setScopeFilter(fk, b);
+            };
+          })(f.key, btn);
+          row2.appendChild(btn);
+        });
+        bar.appendChild(row2);
+        buildTitleSearchRow(bar);
+      }
+
+      /** Returns true if the event should be visible given current filters.
+       *  Checks title search first, then reward tier + ranking scope. */
+      function cardMatchesFilters(ev) {
+        if (activeTitleFilter) {
+          return eventMatchesName(ev, activeTitleFilter);
+        }
+        if (activeRewardFilter === "all" && activeScopeFilter === "all")
+          return true;
+        return ev.rankings.some(function (r) {
+          return rankingMatchesFilters(r);
+        });
+      }
+
+      /** Announces the visible result count to screen readers via the live region. */
+      function announceCount(n) {
+        var live = document.getElementById("result-count");
+        if (live)
+          live.textContent = n + (n === 1 ? " event" : " events") + " shown";
+      }
+
+      /** Filters EVENTS and renders them as cards into #cards-grid. */
+      function renderCards() {
+        var grid = document.getElementById("cards-grid");
+        var filtered = EVENTS.filter(cardMatchesFilters);
+        grid.innerHTML = filtered.map(buildCard).join("");
+        announceCount(filtered.length);
+      }
+
+      /** Sets the active reward-tier filter and re-renders. */
+      function setRewardFilter(f, el) {
+        activeRewardFilter = f;
+        document
+          .querySelectorAll(".filter-chip:not(.scope-chip)")
+          .forEach(function (c) {
+            c.classList.remove("active");
+          });
+        el.classList.add("active");
+        renderView();
+      }
+
+      /** Sets the active ranking-type filter and re-renders. */
+      function setScopeFilter(f, el) {
+        activeScopeFilter = f;
+        document.querySelectorAll(".scope-chip").forEach(function (c) {
+          c.classList.remove("active");
+        });
+        el.classList.add("active");
+        renderView();
+      }
+
+      /** Switches the visible tab panel and updates ARIA state. */
+      function switchTab(name, el) {
+        document.querySelectorAll(".tab-panel").forEach(function (p) {
+          p.classList.remove("active");
+        });
+        document.querySelectorAll(".tab-btn").forEach(function (b) {
+          b.classList.remove("active");
+          b.setAttribute("aria-selected", "false");
+          b.setAttribute("tabindex", "-1");
+        });
+        document.getElementById("tab-" + name).classList.add("active");
+        el.classList.add("active");
+        el.setAttribute("aria-selected", "true");
+        el.setAttribute("tabindex", "0");
+        if (name === "calc") populateCalcSelect();
+      }
+
+      /** Arrow-key navigation for the tablist (WCAG keyboard support). */
+      function tabKeydown(e) {
+        var tabs = Array.prototype.slice.call(
+          document.querySelectorAll(".tab-btn"),
+        );
+        var i = tabs.indexOf(e.currentTarget);
+        var next = -1;
+        if (e.key === "ArrowRight" || e.key === "ArrowDown")
+          next = (i + 1) % tabs.length;
+        else if (e.key === "ArrowLeft" || e.key === "ArrowUp")
+          next = (i - 1 + tabs.length) % tabs.length;
+        else if (e.key === "Home") next = 0;
+        else if (e.key === "End") next = tabs.length - 1;
+        if (next >= 0) {
+          e.preventDefault();
+          tabs[next].focus();
+          tabs[next].click();
+        }
+      }
+
+      /** Populates the event dropdown in the calculator tab.
+       *  @param {string} [preselect] - Event name to pre-select */
+      function populateCalcSelect(preselect) {
+        var sel = document.getElementById("calc-event");
+        sel.innerHTML = "<option value=''>- select event -</option>";
+        EVENTS.filter(function (e) {
+          return e.regen;
+        }).forEach(function (e) {
+          var o = document.createElement("option");
+          o.value = e.name;
+          o.textContent = e.name;
+          if (preselect && e.name === preselect) o.selected = true;
+          sel.appendChild(o);
+        });
+      }
+
+      /** Current calculator mode: 'target' (enter goal stamina) or
+       *  'time' (enter hours away). */
+      var calcMode = "target";
+
+      /** Switches the calculator between target-stamina and time-away modes. */
+      function setCalcMode(mode) {
+        calcMode = mode;
+        var targetBtn = document.getElementById("mode-target-btn");
+        var timeBtn = document.getElementById("mode-time-btn");
+        var targetField = document.getElementById("field-target");
+        var timeField = document.getElementById("field-time");
+        var isTarget = mode === "target";
+        targetBtn.classList.toggle("active", isTarget);
+        timeBtn.classList.toggle("active", !isTarget);
+        targetBtn.setAttribute("aria-checked", isTarget ? "true" : "false");
+        timeBtn.setAttribute("aria-checked", !isTarget ? "true" : "false");
+        targetField.style.display = isTarget ? "" : "none";
+        timeField.style.display = isTarget ? "none" : "";
+        recalc();
+      }
+
+      /** Handles selecting an event in the calculator:
+       *  pre-fills current stam (start stam) and target stam (max stam). */
+      function onEventSelect() {
+        var evName = document.getElementById("calc-event").value;
+        var ev = EVENTS.find(function (e) {
+          return e.name === evName;
+        });
+        var cur = document.getElementById("calc-current");
+        var tgt = document.getElementById("calc-target");
+        var hint = document.getElementById("calc-hint");
+        if (ev) {
+          var ss =
+            ev.startStam !== null && ev.startStam !== undefined
+              ? ev.startStam
+              : 0;
+          cur.value = ss;
+          cur.placeholder = ss;
+          hint.textContent =
+            "Default is starting stamina (" +
+            ss +
+            "). Edit if you have already spent some.";
+          tgt.value =
+            ev.maxStam !== null && ev.maxStam !== undefined ? ev.maxStam : "";
+          var hrs = document.getElementById("calc-hours");
+          if (hrs) hrs.value = "";
+        } else {
+          cur.value = "";
+          cur.placeholder = "0";
+          tgt.value = "";
+          var hrs2 = document.getElementById("calc-hours");
+          if (hrs2) hrs2.value = "";
+          hint.textContent = "";
+        }
+        recalc();
+      }
+
+      /** Reads calculator inputs and updates the results section.
+       *  Supports two modes:
+       *   - 'target': given a goal stamina, how long / when will you reach it?
+       *   - 'time': given hours away, how much stamina will you have on return? */
+      function recalc() {
+        var evName = document.getElementById("calc-event").value;
+        var current =
+          parseFloat(document.getElementById("calc-current").value) || 0;
+        var box = document.getElementById("calc-result");
+        var grid = document.getElementById("calc-grid");
+        var ev = EVENTS.find(function (e) {
+          return e.name === evName;
+        });
+        if (!evName || !ev || !ev.regen) {
+          box.style.display = "none";
+          return;
+        }
+        var minsPerStam = ev.regen.mins / ev.regen.stam;
+        var maxStam =
+          ev.maxStam !== null && ev.maxStam !== undefined ? ev.maxStam : null;
+        var results = [];
+
+        if (calcMode === "target") {
+          // ── Mode 1: target stamina → time to reach it ──
+          var target = parseFloat(
+            document.getElementById("calc-target").value,
+          );
+          if (isNaN(target) || target <= 0) {
+            box.style.display = "none";
+            return;
+          }
+          var needed = Math.max(0, target - current);
+          results.push({ label: "Current Stamina", value: current });
+          results.push({ label: "Stamina Needed", value: needed });
+          if (needed === 0) {
+            results.push({ label: "Status", value: "Already there \u2713" });
+          } else {
+            var totalMins = needed * minsPerStam;
+            var h = Math.floor(totalMins / 60),
+              m = Math.round(totalMins % 60);
+            results.push({
+              label: "Regen Time",
+              value: h > 0 ? h + "h " + m + "m" : m + "m",
+            });
+            results.push({
+              label: "Ready at (your time)",
+              value: clockAfter(totalMins),
+            });
+            if (maxStam && target > maxStam)
+              results.push({
+                label: "\u26a0 Exceeds Max",
+                value: "Cap is " + maxStam,
+              });
+          }
+        } else {
+          // ── Mode 2: hours away → stamina on return ──
+          var hours = parseFloat(document.getElementById("calc-hours").value);
+          if (isNaN(hours) || hours < 0) {
+            box.style.display = "none";
+            return;
+          }
+          var awayMins = hours * 60;
+          var regened = Math.floor(awayMins / minsPerStam);
+          var rawTotal = current + regened;
+          var capped = maxStam !== null ? Math.min(rawTotal, maxStam) : rawTotal;
+
+          results.push({ label: "Current Stamina", value: current });
+          results.push({
+            label: "Stamina on Return",
+            value:
+              capped +
+              (maxStam !== null ? " / " + maxStam : ""),
+          });
+
+          if (maxStam !== null && rawTotal >= maxStam) {
+            // It will hit the cap — figure out when, and how much is wasted
+            var minsToFull = (maxStam - current) * minsPerStam;
+            results.push({
+              label: "\u26a0 Will Max Out",
+              value: "Yes \u2014 capped at " + maxStam,
+            });
+            results.push({
+              label: "Maxes at (your time)",
+              value: clockAfter(Math.max(0, minsToFull)),
+            });
+            var wasted = rawTotal - maxStam;
+            if (wasted > 0)
+              results.push({
+                label: "Wasted Regen",
+                value: wasted + " stam",
+              });
+            results.push({
+              label: "Tip",
+              value: "Spend some now to avoid waste",
+            });
+          } else {
+            results.push({
+              label: "Stamina Gained",
+              value: "+" + regened,
+            });
+            results.push({ label: "Will Max Out", value: "No" });
+          }
+        }
+
+        grid.innerHTML = results
+          .map(function (r) {
+            return (
+              '<div class="calc-stat"><span class="calc-stat-label">' +
+              r.label +
+              '</span><span class="calc-stat-value">' +
+              r.value +
+              "</span></div>"
+            );
+          })
+          .join("");
+        box.style.display = "block";
+      }
+
+      /** Returns a local clock-time string `mins` minutes from now,
+       *  respecting the selected timezone region. */
+      function clockAfter(mins) {
+        var future = new Date(new Date().getTime() + mins * 60000);
+        try {
+          var tzOpts = { hour: "numeric", minute: "2-digit", hour12: true };
+          if (selectedTZ) tzOpts.timeZone = selectedTZ;
+          return future.toLocaleTimeString([], tzOpts);
+        } catch (e) {
+          return "";
+        }
+      }
+
+      /** Switches to the Calculator tab with the event from the clicked card
+       *  pre-selected. */
+      function openCalc(btn) {
+        var card = btn.closest(".event-card");
+        var name = card ? card.getAttribute("data-name") : "";
+        switchTab("calc", document.querySelectorAll(".tab-btn")[1]);
+        populateCalcSelect(name);
+        onEventSelect();
+      }
+
+      EVENTS.sort(function (a, b) {
+        return a.name.localeCompare(b.name);
+      });
+      buildFilters();
+      renderCards();
+      populateCalcSelect();
+    </script>
+  </body>
+</html>
