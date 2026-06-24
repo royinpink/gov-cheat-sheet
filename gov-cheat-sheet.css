@@ -641,7 +641,7 @@ input[type="number"]:focus {
   left: 0;
   right: 0;
   background: var(--stone);
-  border: 1px solid var(--blood-bright);
+  border: 1px solid var(--ash);
   z-index: 200;
   max-height: 220px;
   overflow-y: auto;
