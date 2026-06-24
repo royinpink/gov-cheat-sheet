@@ -405,6 +405,20 @@ h3.card-title {
 }
 .shop-rec .items-wrap {
   margin-top: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.item-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--parchment);
+  background: var(--stone);
+  border: 1px solid var(--ash);
+  border-radius: 2px;
+  padding: 0.2rem 0.5rem;
 }
 
 /* ── Diamond Stamina ───────────────────────────────────────────── */
@@ -541,8 +555,12 @@ input[type="number"] {
   outline: none;
   width: 100%;
 }
-select:focus,
-input[type="number"]:focus {
+.field select:focus,
+.field input[type="number"]:focus,
+.field select:focus-visible,
+.field input[type="number"]:focus-visible {
+  outline: none;
+  outline-offset: 0;
   border-color: var(--gold);
 }
 .stam-hint {
