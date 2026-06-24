@@ -7,18 +7,13 @@ web page — no server or build step needed.
 ## Files
 
 ```
-index.html                ← the page (open this)
-gov-cheat-sheet.css       ← styling
-gov-cheat-sheet-data.js   ← event data (edit event info here)
-imgs/                     ← reward/currency icons (keep next to index.html)
+index.html            ← the page (open this)
+gov-cheat-sheet.css   ← styling
+imgs/                 ← reward/currency icons (keep next to index.html)
 ```
 
-Everything is relative-linked, so these files must stay together in the
+Everything is relative-linked, so these three things must stay together in the
 same folder.
-
-**To update event data** (stamina, rankings, rewards, new events), edit
-`gov-cheat-sheet-data.js` — all the event info lives there, separated from the
-page logic. Re-upload that one file to update the live site.
 
 ---
 
@@ -34,8 +29,8 @@ This gives you a public link like
 
 2. **Upload the files.** The easiest way:
    - On the repo's main page, click **Add file → Upload files**.
-   - Drag in `index.html`, `gov-cheat-sheet.css`,
-     `gov-cheat-sheet-data.js`, and the **entire `imgs` folder**.
+   - Drag in `index.html`, `gov-cheat-sheet.css`, and the **entire `imgs`
+     folder**.
    - Click **Commit changes**.
 
 3. **Turn on Pages.**

@@ -767,6 +767,28 @@ input[type="number"] {
 }
 
 /* ── View Toggle ─────────────────────────────────────────────────── */
+
+/* ── View display logic (cards / full table / mobile table) ─────── */
+/* Default (wide screens): cards section shows grid, table sections hidden
+   unless the section has .show-table. */
+#tab-cards.show-cards #cards-grid {
+  display: grid;
+}
+#tab-cards.show-cards #table-container,
+#tab-cards.show-cards #mobile-table-container {
+  display: none !important;
+}
+#tab-cards.show-table #cards-grid {
+  display: none;
+}
+/* In table view on wide screens: full table shown, mobile table hidden */
+#tab-cards.show-table #table-container {
+  display: block !important;
+}
+#tab-cards.show-table #mobile-table-container {
+  display: none !important;
+}
+
 .view-toggle-bar {
   display: flex;
   align-items: center;
@@ -971,15 +993,14 @@ h1 {
     transform: none;
     justify-content: center;
   }
-  /* Below 860px the 12-column table can't fit, so force card view */
-  .view-toggle-bar {
-    display: none;
-  }
-  #table-container {
+  /* Below 860px the 12-column table can't fit. Keep the view toggle so the
+     user can still choose Table — but show the streamlined 3-column mobile
+     table instead of the full one. */
+  #tab-cards.show-table #table-container {
     display: none !important;
   }
-  #cards-grid {
-    display: grid !important;
+  #tab-cards.show-table #mobile-table-container {
+    display: block !important;
   }
 }
 
@@ -1062,4 +1083,25 @@ input:focus:not(:focus-visible) {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ── Mobile streamlined 3-column table ──────────────────────────── */
+.mobile-table {
+  table-layout: auto;
+}
+.mobile-table th {
+  font-size: 0.55rem;
+}
+.mobile-table td {
+  vertical-align: top;
+  font-size: 0.78rem;
+}
+/* Event name spans the full width as a header row above its data row */
+.m-evname-cell {
+  background: var(--blood-dim) !important;
+  border-bottom: none !important;
+  padding: 0.4rem 0.6rem !important;
+}
+.m-evname-cell .t-evname {
+  font-size: 0.82rem;
 }
