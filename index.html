@@ -412,7 +412,7 @@
           Auction: "rank-auction",
           Admiration: "rank-admiration",
           Amulets: "rank-admiration",
-          "Team": "rank-team",
+          "Team Progression": "rank-team",
         };
         return map[type] || "rank-personal";
       }
@@ -1322,16 +1322,10 @@
         var tgt = document.getElementById("calc-target");
         var hint = document.getElementById("calc-hint");
         if (ev) {
-          var ss =
-            ev.startStam !== null && ev.startStam !== undefined
-              ? ev.startStam
-              : 0;
-          cur.value = ss;
-          cur.placeholder = ss;
+          cur.value = 0;
+          cur.placeholder = "0";
           hint.textContent =
-            "Default is starting stamina (" +
-            ss +
-            "). Edit if you have already spent some.";
+            "Enter your current stamina.";
           tgt.value =
             ev.maxStam !== null && ev.maxStam !== undefined ? ev.maxStam : "";
           var hrs = document.getElementById("calc-hours");

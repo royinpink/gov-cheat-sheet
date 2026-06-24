@@ -708,7 +708,10 @@ input[type="number"]:focus {
   max-width: 80px;
 }
 .tz-select:hover,
-.tz-select:focus {
+.tz-select:focus,
+.tz-select:focus-visible {
+  outline: none;
+  outline-offset: 0;
   border-color: var(--blood-bright);
   color: var(--parchment);
 }
