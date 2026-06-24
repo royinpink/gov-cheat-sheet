@@ -613,9 +613,10 @@ input[type="number"]:focus {
   color: var(--parchment-dim);
   font-style: italic;
 }
-.title-search-input:focus,
-.title-search-input:focus-visible {
+.title-search-wrap .title-search-input:focus,
+.title-search-wrap .title-search-input:focus-visible {
   outline: none;
+  outline-offset: 0;
   border-color: var(--blood-bright);
 }
 .title-clear {
