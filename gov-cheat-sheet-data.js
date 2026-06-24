@@ -131,7 +131,7 @@ var EVENTS = [
     diamond: { cost: 40, stamPerBuy: 2, maxBuys: 20 },
     rankings: [
       { type: "Personal", reward: "Soulsworn Count" },
-      { type: "Team", chipLabel: "Team Progression", reward: "Chatbox" },
+      { type: "Team", chipLabel: "Team", reward: "Chatbox" },
       { type: "Amulets", reward: null },
     ],
     items: [],
